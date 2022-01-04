@@ -1,7 +1,7 @@
-<h1 align="center">@imqueue/dd-trace</h1>
+<h1 align="center">@imqueue/gcp-trace</h1>
 <hr>
 <p align="center">
-    <strong>Integration package with Datadog tracing for @imqueue</strong>
+    <strong>Integration package with Google Cloud Trace tracing for @imqueue</strong>
 </p>
 <hr>
 
