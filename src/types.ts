@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2021, imqueue.com <support@imqueue.com>
+ * Copyright (c) 2022, imqueue.com <support@imqueue.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,6 +13,14 @@
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-export * from './instrumentation';
-export * from './types';
-export * from './enums';
+import { TraceKind } from './enums';
+
+export interface TracedOptions {
+    kind: TraceKind;
+    tags?: TraceAttributes;
+    tracerName?: string;
+}
+
+export interface TraceAttributes {
+    [name: string]: string;
+}

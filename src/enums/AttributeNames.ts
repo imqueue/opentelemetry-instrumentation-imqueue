@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2021, imqueue.com <support@imqueue.com>
+ * Copyright (c) 2022, imqueue.com <support@imqueue.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,6 +13,11 @@
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-export * from './instrumentation';
-export * from './types';
-export * from './enums';
+export enum AttributeNames {
+    SPAN_KIND = 'span.kind',
+    RESOURCE_NAME = 'resource.name',
+    SERVICE_NAME = 'service.name',
+    IMQ_CLIENT = 'imq.client',
+    COMPONENT = 'component',
+    ERROR_MESSAGE = 'error.message',
+}

@@ -1,13 +1,14 @@
 {
-  "name": "@imqueue/gcp-trace",
+  "name": "@imqueue/opentelemetry-instrumentation-imqueue",
   "version": "1.0.0",
-  "description": "Integration package with Google CLoud Trace for @imqueue",
+  "description": "This module provides OpenTelemetry instrumentation for @imqueue",
   "keywords": [
-    "gcp-trace",
+    "imqueue",
     "trace",
     "tracing",
-    "datadog",
-    "integration"
+    "opentelemetry",
+    "integration",
+    "instrumentation"
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -30,16 +31,20 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git://github.com/imqueue/gcp-trace.git"
+    "url": "git://github.com/imqueue/opentelemetry-instrumentation-imqueue.git"
   },
   "bugs": {
-    "url": "https://github.com/imqueue/gcp-trace/issues"
+    "url": "https://github.com/imqueue/opentelemetry-instrumentation-imqueue/issues"
   },
-  "homepage": "https://github.com/imqueue/gcp-trace",
+  "homepage": "https://github.com/imqueue/opentelemetry-instrumentation-imqueue",
   "dependencies": {
-    "@google-cloud/trace-agent": "^5.1.6",
+    "@google-cloud/opentelemetry-cloud-trace-exporter": "^1.0.0",
     "@imqueue/core": "^1.7.3",
     "@imqueue/rpc": "^1.10.7",
+    "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/auto-instrumentations-node": "^0.27.1",
+    "@opentelemetry/instrumentation": "^0.27.0",
+    "@opentelemetry/tracing": "^0.24.0",
     "@types/node": "^13.9.1"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2021, imqueue.com <support@imqueue.com>
+ * Copyright (c) 2022, imqueue.com <support@imqueue.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,29 +13,38 @@
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-import gcpTracer from '@google-cloud/trace-agent';
 import {
-    RootSpan,
     Span,
-    Tracer,
-} from '@google-cloud/trace-agent/build/src/plugin-types';
+    trace,
+    SpanKind,
+    SpanStatusCode,
+} from '@opentelemetry/api';
 import * as path from 'path';
-export * from '@google-cloud/trace-agent';
+import {
+    SpanNames,
+    TraceKind,
+    TracedOptions,
+    AttributeNames,
+    TraceAttributes,
+} from './src';
 
-export interface TraceTags {
-    [name: string]: string;
-}
+export * from './src/instrumentation';
 
 const traces: { [name: string]: Span } = {};
+const componentName = 'imq';
+const defaultTracerName = 'basic';
 
 // noinspection JSUnusedGlobalSymbols
 /**
- * Short-hand for making in-code traces. Starts datadog trace span with the
+ * Shorthand for making in-code traces. Starts datadog trace span with the
  * given name, and assigns it given tags (if passed).
  *
  * @example
  * ```typescript
- * import { trace, traceEnd } from '@imqueue/gcp-trace';
+ * import {
+ *  trace,
+ *  traceEnd,
+ * } from '@imqueue/opentelemetry-instrumentation-imqueue';
  *
  * trace('my-trace');
  * // ... do some work
@@ -43,47 +52,36 @@ const traces: { [name: string]: Span } = {};
  * ```
  *
  * @param {string} name - trace name (datadog span name
- * @param {TraceTags} [tags] - datadog trace span tags, if passed
+ * @param {TraceAttributes} [tags] - datadog trace span tags, if passed
+ * @param {string} tracerName
  */
-export function trace(name: string, tags?: TraceTags) {
+export function traceStart(
+    name: string,
+    tags?: TraceAttributes,
+    tracerName?: string,
+) {
     if (traces[name]) {
         throw new TypeError(
-            `Trace with name ${name} has been already started!`,
+            `Trace with name ${ name } has been already started!`,
         );
     }
 
-    const tracer = gcpTracer.start();
-    const rootSpan: RootSpan = tracer.getCurrentRootSpan();
-
-    if (tracer.isRealSpan(rootSpan)) {
-        traces[name] = rootSpan.createChildSpan({ name });
-    } else {
-        traces[name] = tracer.createChildSpan({ name });
-    }
+    traces[name] = trace.getTracer(
+        tracerName || defaultTracerName,
+    ).startSpan(name);
 }
 
 // noinspection JSUnusedGlobalSymbols
 /**
- * Short-hand for finishing datadog trace span.
+ * Shorthand for finishing datadog trace span.
  *
  * @param {string} name
  */
 export function traceEnd(name: string) {
     if (traces[name]) {
-        traces[name].endSpan();
+        traces[name].end();
         delete traces[name];
     }
-}
-
-export enum TraceKind {
-    // noinspection JSUnusedGlobalSymbols
-    SERVER = 'server',
-    CLIENT = 'client',
-}
-
-export interface TracedOptions {
-    kind: TraceKind;
-    tags?: TraceTags;
 }
 
 const DEFAULT_TRACED_OPTIONS: TracedOptions = {
@@ -93,7 +91,7 @@ const DEFAULT_TRACED_OPTIONS: TracedOptions = {
 let pkgName = '';
 
 try {
-    pkgName = require(`${path.resolve('.')}${path.sep}package.json`).name;
+    pkgName = require(`${ path.resolve('.') }${ path.sep }package.json`).name;
 } catch (err) { /* ignore */ }
 
 // noinspection JSUnusedGlobalSymbols
@@ -111,37 +109,40 @@ export function traced(options?: Partial<TracedOptions>) {
         const opts: TracedOptions = Object.assign(
             {}, DEFAULT_TRACED_OPTIONS, options || {},
         );
-        const tracer = gcpTracer.get();
+        const tracerInstance = trace.getTracer(
+            opts.tracerName || defaultTracerName,
+        );
 
         descriptor.value = function<T>(...args: any[]) {
             const className = this.constructor.name;
-            const tags = Object.assign({
-                'span.kind': opts.kind,
-                'resource.name': `${className}.${String(methodName)}`,
-                ...(pkgName ? { 'package.name': pkgName } : {}),
-                'component': 'imq',
+            const attributes = Object.assign({
+                [AttributeNames.SPAN_KIND]: opts.kind,
+                [AttributeNames.RESOURCE_NAME]: `${ className }.${
+                    String(methodName) }`,
+                ...(pkgName ? { [AttributeNames.RESOURCE_NAME]: pkgName } : {}),
+                [AttributeNames.COMPONENT]: componentName,
             }, opts.tags || {});
-            const rootSpan = tracer.getCurrentRootSpan();
-            const span = rootSpan.createChildSpan({ name: 'method.call' });
-
-            for (const tagKey of Object.keys(tags)) {
-                span.addLabel(tagKey, tags[tagKey]);
-            }
+            const span = tracerInstance.startSpan(SpanNames.METHOD_CALL, {
+                attributes,
+                kind: opts.kind === TraceKind.CLIENT
+                    ? SpanKind.CLIENT
+                    : SpanKind.SERVER,
+            });
 
             try {
                 const result: any = original && original.apply(this, args);
 
                 if (result && result.then) {
                     // noinspection CommaExpressionJS
-                    return result.then((res: any) => (span.endSpan(), res))
-                    .catch((err: any) => handleError(span, err, tracer));
+                    return result.then((res: any) => (span.end(), res))
+                    .catch((err: any) => handleError(span, err));
                 }
 
-                span.endSpan();
+                span.end();
 
                 return result;
             } catch (err) {
-                handleError(span, err, tracer);
+                handleError(span, err);
             }
         };
     };
@@ -152,12 +153,12 @@ export function traced(options?: Partial<TracedOptions>) {
  *
  * @param {Span} span
  * @param {any} err
- * @param {Tracer} tracer
  * @throws {any}
  */
-function handleError(span: Span, err: any, tracer: Tracer) {
-    span.addLabel(tracer.labels.ERROR_DETAILS_NAME, err);
-    span.endSpan();
+function handleError(span: Span, err: any) {
+    span.setAttribute(AttributeNames.ERROR_MESSAGE, err);
+    span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message });
+    span.end();
 
     throw err;
 }

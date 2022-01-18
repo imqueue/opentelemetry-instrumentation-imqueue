@@ -1,21 +1,21 @@
-<h1 align="center">@imqueue/gcp-trace</h1>
+<h1 align="center">@imqueue/opentelemetry-instrumentation-imqueue</h1>
 <hr>
 <p align="center">
-    <strong>Integration package with Google Cloud Trace  for @imqueue</strong>
+    <strong>This module provides automatic opentelemetry instrumentation for the @imqueue</strong>
 </p>
 <hr>
 
 ## What Is This?
 
-This library provides a clean way to integrate 
-[@imqueue/rpc](https://github.com/imqueue/rpc) with 
-[Google Cloud](https://cloud.google.com/trace/docs/setup/nodejs) 
-[tracing](https://www.npmjs.com/package/@google-cloud/trace-agent).
+This library provides a clean way to integrate
+[@imqueue/rpc](https://github.com/imqueue/rpc) with
+[Google Cloud](https://cloud.google.com/trace/docs/setup/nodejs) using
+[OpenTelemetry](https://github.com/open-telemetry).
 
 ## Install
 
 ~~~bash
-npm i --save @imqueue/gcp-trace
+npm i --save @imqueue/opentelemtry-instrumentation-imqueue
 ~~~ 
 
 ## Usage & API
@@ -30,6 +30,6 @@ accepted!
 
 ## License
 
-[ISC](https://github.com/imqueue/gcp-trace/blob/master/LICENSE)
+[ISC](https://github.com/imqueue/opentelemetry-instrumentation-imqueue/blob/master/LICENSE)
 
 Happy Coding!
