@@ -8,8 +8,7 @@
 ## What Is This?
 
 This library provides a clean way to integrate
-[@imqueue/rpc](https://github.com/imqueue/rpc) with
-[Google Cloud](https://cloud.google.com/trace/docs/setup/nodejs) using
+[@imqueue/rpc](https://github.com/imqueue/rpc) with 
 [OpenTelemetry](https://github.com/open-telemetry).
 
 ## Install
@@ -20,6 +19,24 @@ npm i --save @imqueue/opentelemtry-instrumentation-imqueue
 
 ## Usage & API
 
+OpenTelemetry Imqueue Instrumentation allows the user to automatically collect trace data and export them to their backend of choice, to give observability to distributed systems.
+
+```js
+const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
+const { registerInstrumentations } = require('@opentelemetry/instrumentation');
+const {
+    ImqueueInstrumentation,
+} = require('@imqueue/opentelemetry-instrumentation-imqueue');
+
+const provider = new NodeTracerProvider();
+provider.register();
+
+registerInstrumentations({
+  instrumentations: [
+    new ImqueueInstrumentation(),
+  ],
+});
+```
 
 ## Contributing
 
