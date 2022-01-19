@@ -35,8 +35,8 @@ import {
 import { Span } from '@opentelemetry/tracing';
 import { AttributeNames, SpanNames, TraceKind } from './enums';
 
-const instrumentationName = '@imqueque/rpc';
-const instrumentationVersion = '1.0.0';
+const instrumentationName = '@imqueue/opentelemetry-instrumentation-imqueue';
+const instrumentationVersion = '1.0.1';
 const versions = ['>=1.10'];
 const componentName = 'imq';
 
