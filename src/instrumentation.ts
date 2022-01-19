@@ -36,6 +36,7 @@ import { Span } from '@opentelemetry/tracing';
 import { AttributeNames, SpanNames, TraceKind } from './enums';
 
 const instrumentationName = '@imqueue/opentelemetry-instrumentation-imqueue';
+const packageName = '@imqueue/rpc';
 const instrumentationVersion = '1.0.1';
 const versions = ['>=1.10'];
 const componentName = 'imq';
@@ -58,7 +59,7 @@ export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
 
     protected init() {
         const module = new InstrumentationNodeModuleDefinition<ServiceModule>(
-            instrumentationName, versions,
+            packageName, versions,
             moduleExports => {
                 const { beforeCallClient, beforeCallService, afterCall } = this;
 
