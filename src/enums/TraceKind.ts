@@ -14,7 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 export enum TraceKind {
-    // noinspection JSUnusedGlobalSymbols
     SERVER = 'server',
     CLIENT = 'client',
 }

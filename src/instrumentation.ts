@@ -37,7 +37,7 @@ import { AttributeNames, SpanNames, TraceKind } from './enums';
 
 const instrumentationName = '@imqueue/opentelemetry-instrumentation-imqueue';
 const packageName = '@imqueue/rpc';
-const instrumentationVersion = '1.0.1';
+const instrumentationVersion = '1.0.3';
 const versions = ['>=1.10'];
 const componentName = 'imq';
 
