@@ -32,12 +32,12 @@ import {
     trace,
     Tracer,
 } from '@opentelemetry/api';
-import { Span } from '@opentelemetry/tracing';
+import { Span } from '@opentelemetry/sdk-trace-base';
 import { AttributeNames, SpanNames, TraceKind } from './enums';
 
 const instrumentationName = '@imqueue/opentelemetry-instrumentation-imqueue';
 const packageName = '@imqueue/rpc';
-const instrumentationVersion = '1.0.5';
+const instrumentationVersion = '1.0.6';
 const versions = ['>=1.10'];
 const componentName = 'imq';
 
