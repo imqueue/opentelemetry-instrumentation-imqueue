@@ -18,13 +18,11 @@ import {
     InstrumentationConfig,
     InstrumentationNodeModuleDefinition,
 } from '@opentelemetry/instrumentation';
-import * as imq from '@imqueue/rpc';
 import {
-    IMQBeforeCall,
     IMQClient,
     IMQRPCRequest,
     IMQServiceOptions,
-} from '@imqueue/rpc';
+} from './imq/types';
 import {
     context,
     propagation,
@@ -32,12 +30,11 @@ import {
     trace,
     Tracer,
 } from '@opentelemetry/api';
-import { Span } from '@opentelemetry/sdk-trace-base';
 import { AttributeNames, SpanNames, TraceKind } from './enums';
 
 const instrumentationName = '@imqueue/opentelemetry-instrumentation-imqueue';
 const packageName = '@imqueue/rpc';
-const instrumentationVersion = '1.0.6';
+const instrumentationVersion = '1.0.8';
 const versions = ['>=1.10'];
 const componentName = 'imq';
 
@@ -46,7 +43,7 @@ type ServiceModule = {
     DEFAULT_IMQ_SERVICE_OPTIONS: IMQServiceOptions;
 };
 
-export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
+export class ImqueueInstrumentation extends InstrumentationBase {
     private static thisTracer: Tracer;
 
     constructor(config: InstrumentationConfig = {}) {
@@ -59,7 +56,8 @@ export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
 
     protected init() {
         const module = new InstrumentationNodeModuleDefinition<ServiceModule>(
-            packageName, versions,
+            packageName,
+            versions,
             moduleExports => {
                 const { beforeCallClient, beforeCallService, afterCall } = this;
 
@@ -76,29 +74,29 @@ export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
                 return moduleExports;
             },
             moduleExports => {
-                ImquequeInstrumentation.unpatchClient(moduleExports);
-                ImquequeInstrumentation.unpatchService(moduleExports);
+                ImqueueInstrumentation.unpatchClient(moduleExports);
+                ImqueueInstrumentation.unpatchService(moduleExports);
 
                 return moduleExports;
             },
         );
 
-        ImquequeInstrumentation.thisTracer = this.tracer;
+        ImqueueInstrumentation.thisTracer = this.tracer;
 
         return module;
     }
 
-    private beforeCallClient: IMQBeforeCall<IMQClient> = async function(
+    private beforeCallClient = async function(
         this: IMQClient,
         req: IMQRPCRequest
     ): Promise<void> {
-        (req as any).toJSON = () => {
+        req.toJSON = () => {
             const copy = Object.assign({}, req);
             delete copy.span;
             return copy;
         };
 
-        const span = ImquequeInstrumentation.thisTracer.startSpan(
+        const span = ImqueueInstrumentation.thisTracer.startSpan(
             SpanNames.IMQ_REQUEST,
             {
                 attributes: {
@@ -121,14 +119,14 @@ export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
             req.metadata.clientSpan,
         );
 
-        (req as any).span = span;
+        req.span = span;
     };
 
-    private beforeCallService: IMQBeforeCall<IMQClient> = async function(
+    private beforeCallService = async function(
         this: IMQClient,
         req: IMQRPCRequest
     ): Promise<void> {
-        (req as any).toJSON = () => {
+        req.toJSON = () => {
             const copy = Object.assign({}, req);
             delete copy.span;
             return copy;
@@ -137,7 +135,7 @@ export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
         const carrier = (req.metadata || { clientSpan: null }).clientSpan;
         const parentContext = propagation.extract(context.active(), carrier);
 
-        (req as any).span = ImquequeInstrumentation.thisTracer.startSpan(
+        req.span = ImqueueInstrumentation.thisTracer.startSpan(
             SpanNames.IMQ_RESPONSE,
             {
                 attributes: {
@@ -154,11 +152,11 @@ export class ImquequeInstrumentation extends InstrumentationBase<typeof imq> {
         );
     };
 
-    private afterCall: IMQBeforeCall<IMQClient> = async function(
+    private afterCall = async function(
         this: IMQClient,
         req: IMQRPCRequest,
     ): Promise<void> {
-        ((req as any).span as Span | undefined)?.end();
+        req.span?.end();
     };
 
     private static unpatchClient(serviceModule: ServiceModule): void {
